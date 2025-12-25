@@ -237,8 +237,12 @@ def evaluate(
     for label in range(generator.num_classes()):
         label_name = generator.label_to_name(label)
         print('{}: {}'.format(label_name, average_precisions[label][0]))
-        print("Precision: ",precision[-1])
-        print("Recall: ",recall[-1])
+        if precision.size > 0 and recall.size > 0:
+            print("Precision: ", precision[-1])
+            print("Recall: ", recall[-1])
+        else:
+            print("Precision: N/A")
+            print("Recall: N/A")
         
         if save_path!=None:
             plt.plot(recall,precision)
