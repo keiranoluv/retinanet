@@ -6,6 +6,8 @@ import csv
 import cv2
 import argparse
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 
 def load_classes(csv_reader):
     result = {}
@@ -41,7 +43,15 @@ def detect_image(image_path, model_path, class_list):
     for key, value in classes.items():
         labels[value] = key
 
-    model = torch.load(model_path)
+    model = torch.load(model_path, map_location='cpu', weights_only=False)
+
+    if hasattr(model, 'module'):
+        model = model.module
+
+    model = model.to(device)
+    model.eval()
+
+
 
     if torch.cuda.is_available():
         model = model.cuda()
@@ -96,7 +106,8 @@ def detect_image(image_path, model_path, class_list):
 
             st = time.time()
             print(image.shape, image_orig.shape, scale)
-            scores, classification, transformed_anchors = model(image.cuda().float())
+            scores, classification, transformed_anchors = model(image.to(device).float())
+
             print('Elapsed time: {}'.format(time.time() - st))
             idxs = np.where(scores.cpu() > 0.5)
 

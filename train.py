@@ -30,7 +30,7 @@ def main(args=None):
     parser.add_argument('--csv_val', help='Path to file containing validation annotations (optional, see readme)')
 
     parser.add_argument('--depth', help='Resnet depth, must be one of 18, 34, 50, 101, 152', type=int, default=18)
-    parser.add_argument('--epochs', help='Number of epochs', type=int, default=5)
+    parser.add_argument('--epochs', help='Number of epochs', type=int, default=20)
 
     parser = parser.parse_args(args)
 
@@ -66,13 +66,14 @@ def main(args=None):
     else:
         raise ValueError('Dataset type not understood (must be csv or coco), exiting.')
 
-    sampler = AspectRatioBasedSampler(dataset_train, batch_size=1, drop_last=False)
+    sampler = AspectRatioBasedSampler(dataset_train, batch_size=2, drop_last=False)
     dataloader_train = DataLoader(dataset_train, num_workers=3, collate_fn=collater, batch_sampler=sampler)
 
     if dataset_val is not None:
         sampler_val = AspectRatioBasedSampler(dataset_val, batch_size=1, drop_last=False)
         dataloader_val = DataLoader(dataset_val, num_workers=3, collate_fn=collater, batch_sampler=sampler_val)
 
+    print("UPLOAD... ", dataset_train.num_classes())
     # Create the model
     if parser.depth == 18:
         retinanet = model.resnet18(num_classes=dataset_train.num_classes(), pretrained=False)
@@ -100,7 +101,7 @@ def main(args=None):
 
     retinanet.training = True
 
-    optimizer = optim.Adam(retinanet.parameters(), lr=1e-5)
+    optimizer = optim.Adam(retinanet.parameters(), lr=1e-4)
 
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=3)
 
